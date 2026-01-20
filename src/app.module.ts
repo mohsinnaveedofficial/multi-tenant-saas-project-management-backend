@@ -8,7 +8,7 @@ import { UserModule } from './modules/user/user.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { TenantModule } from './modules/tenant/tenant.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ClientModule } from './modules/client/client.module';
 import { ProjectModule } from './modules/project/project.module';
 import { ProjectAssignedUsersModule } from './modules/project-assigned-users/project-assigned-users.module';
@@ -34,15 +34,24 @@ import jwtConfig from './modules/auth/config/jwt.config';
     UserModule,
     AuthModule,
     TenantModule,
-    TypeOrmModule.forRoot({
-      port: 5432,
-      type: 'postgres',
-      host: '127.0.0.1',
-      username: 'postgres',
-      password: 'admin',
-      database: 'multi_tenant_saas',
-      entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: true,
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        type: 'postgres',
+        // host: configService.get<string>('DATABASE_HOST'),
+        // port:  5432,
+        // username: configService.get<string>('DATABASE_USER'),
+        // password: configService.get<string>('DATABASE_PASS'),
+        // database: configService.get<string>('DATABASE_NAME'),
+        url:configService.get<string>('DATABASE_URL'),
+        schema:'multi_tenant_saas',
+        entities: [__dirname + '/**/*.entity{.ts,.js}'],
+        synchronize: true, 
+        ssl:{
+          rejectUnauthorized:false
+        }
+      }),
     }),
     ClientModule,
     ProjectModule,
@@ -59,8 +68,6 @@ import jwtConfig from './modules/auth/config/jwt.config';
   controllers: [AppController, TeamController],
   providers: [
     AppService,
-    // ensure global guards are registered early at the root module so all controllers
-    // created afterwards are protected from bootstrap time
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
     AdminService,
