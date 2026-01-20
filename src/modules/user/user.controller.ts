@@ -82,10 +82,19 @@ export class UserController {
     return this.userService.UpdateUser(id, updateTemaDto, req.user.id);
   }
 
+// any user update the profile admin and team member 
+
+@Patch()
+updateProfile(@Req() req,@Body() updateUserDto:UpdateUserDto){
+  return this.userService.updateAnyProfile(req.user.id,updateUserDto)
+}
+
+
 
   @Get("/team/profile")
   getTeamProfile(@Req() req){
-    
     return this.userService.getProfile(req.user.id)
   }
+
+
 }

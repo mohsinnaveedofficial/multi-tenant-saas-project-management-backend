@@ -3,6 +3,7 @@ import {
   ConflictException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -194,6 +195,7 @@ export class UserService {
         'tenantId',
         'phoneNumber',
         'createdAt',
+        'email'
       ],
     });
 
@@ -235,20 +237,59 @@ export class UserService {
     };
   }
 
-  async updateTeamProfile(userId: string, updateUserDto: UpdateUserDto) {
+  async updateAnyProfile(userId: string, updateUserDto: UpdateUserDto) {
     const user = await this.findOne(userId);
     if (!user) throw new NotFoundException('User not found');
-    const passwordHash = await bcrypt.hash(updateUserDto.password, 10);
+    const { newPassword, currentPassword, ...rest } = updateUserDto;
+const updateData=Object.fromEntries(
+  Object.entries(rest).filter(([_,value])=>value!==undefined)
+)
 
-    const updateuser = await this.userRepo.update(userId, {
-      name: updateUserDto.name,
-      phoneNumber: updateUserDto.phoneNumber,
-      bio: updateUserDto.bio,
-      designation: updateUserDto.designation,
-      passwordHash: passwordHash,
-    });
+    // const matchOldPass=await bcrypt.compare(updateUserDto.currentPassword,user.passwordHash)
+    // if(!matchOldPass)   throw new UnauthorizedException('Invalid Old Password');
+    // const passwordHash = await bcrypt.hash(updateUserDto.newPassword, 10);
 
-    if (updateuser.affected === 0)
-      throw new ConflictException('Profile is not updated');
+    // const updateuser = await this.userRepo.update(userId, {
+    //   name: updateUserDto.name,
+    //   phoneNumber: updateUserDto.phoneNumber,
+    //   bio: updateUserDto.bio,
+    //   designation: updateUserDto.designation,
+    //   passwordHash: passwordHash,
+    // });
+
+    // if (updateuser.affected === 0)
+    //   throw new ConflictException('Profile is not updated');
+
+
+
+      if (newPassword) {
+    if (!currentPassword) {
+      throw new UnauthorizedException('Current password is required');
+    }
+
+    const isMatch = await bcrypt.compare(
+      currentPassword,
+      user.passwordHash,
+    );
+
+    if (!isMatch) {
+      throw new UnauthorizedException('Invalid old password');
+    }
+
+    updateData.passwordHash = await bcrypt.hash(newPassword, 10);
+  }
+
+  if (Object.keys(updateData).length === 0) {
+    throw new BadRequestException('No fields provided for update');
+  }
+
+  const result = await this.userRepo.update(userId, updateData);
+
+  if (!result.affected) {
+    throw new ConflictException('Profile is not updated');
+  }
+
+  return { message: 'Profile updated successfully' };
+
   }
 }

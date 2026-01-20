@@ -215,7 +215,7 @@ async getTeamCharts(userId: string) {
 
  
 
-  const months = ["Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const months = ["Jan","Feb","Mar","Apr","May" ,"Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];  
 
   const monthlyChartData = months.map((monthName, index) => {
     const month = index + 5; 

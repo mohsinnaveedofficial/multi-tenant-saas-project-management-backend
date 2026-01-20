@@ -160,10 +160,18 @@ export class TaskService {
     if (!user) throw new NotFoundException('User not found');
     return await this.taskrepo.find({
       where: { assignedTo: userId, tenantId: user.tenantId },
+      relations:{project:true},
     });
   }
 
   async updateStatus(userId: string, taskId: string, status: TaskStatus) {
+    const TASK_STATUS_PROGRESS:Record<TaskStatus,number> = {
+  [TaskStatus.TODO]: 0,
+  [TaskStatus.IN_PROGRESS]: 40,
+  [TaskStatus.REVIEW]: 70,
+  [TaskStatus.COMPLETED]: 100,
+  [TaskStatus.DELAYED]: 20,
+};
     const user = await this.userServices.findOne(userId);
     if (!user) throw new NotFoundException('User not found');
 
@@ -171,8 +179,10 @@ export class TaskService {
       where: { id: taskId, assignedTo: userId, tenantId: user.tenantId },
     });
     if (!task) throw new NotFoundException('Task not found');
+    
 
     task.status = status;
+    task.progressPercentage=TASK_STATUS_PROGRESS[status]
     await this.taskrepo.save(task);
 
     return task;
