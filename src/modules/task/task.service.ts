@@ -64,7 +64,7 @@ export class TaskService {
       createTaskDto.assignedTo,
       createTaskDto.roleInProject,
     );
-    console.log(task)
+ 
     return task;
   }
 
@@ -77,7 +77,7 @@ export class TaskService {
       where: { tenantId: user.tenantId },
       relations: { project: true, assignee: true },
     });
-    console.log(tasks)
+   
     return tasks;
   }
 
