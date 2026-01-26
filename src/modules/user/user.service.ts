@@ -150,14 +150,18 @@ export class UserService {
     if (adminUser.tenantId !== teamUser.tenantId) {
       throw new NotFoundException(`User doesn't belong to this tenant`);
     }
+  
 
-    const passwordHash = await bcrypt.hash(updateTeamDto.password, 10);
-    await this.userRepo.update(teamId, {
-      name: updateTeamDto.name,
-      passwordHash: passwordHash,
-      email: updateTeamDto.email,
-      role: updateTeamDto.role,
-    });
+    
+    if(updateTeamDto.password){        
+       const passwordHash = await bcrypt.hash(updateTeamDto.password, 10);
+       teamUser.passwordHash=passwordHash
+    }
+    teamUser.name=updateTeamDto.name;
+    teamUser.email=updateTeamDto.email;
+    teamUser.role=updateTeamDto.role;
+    await this.userRepo.save(teamUser);
+  
     return await this.findOne(teamId);
   }
 
