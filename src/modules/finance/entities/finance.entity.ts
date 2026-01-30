@@ -26,13 +26,13 @@ export class Finance {
   @ManyToOne(() => Project, { onDelete: 'CASCADE' })
   project: Project;
 
-  @Column({ type: 'decimal', precision: 15, scale: 2, default: 0 })
+  @Column({ type: 'decimal', precision: 30, scale: 2, default: 0 })
   revenue: number;
 
-  @Column({ type: 'decimal', precision: 15, scale: 2, default: 0 })
+  @Column({ type: 'decimal', precision: 30, scale: 2, default: 0 })
   cost: number;
 
-  @Column({ type: 'decimal', precision: 15, scale: 2, default: 0 })
+  @Column({ type: 'decimal', precision: 30, scale: 2, default: 0 })
   profit: number;
 
   @Column({ type: 'date' })
